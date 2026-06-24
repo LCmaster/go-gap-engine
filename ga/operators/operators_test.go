@@ -27,11 +27,15 @@ func TestOrderCrossover(t *testing.T) {
 
 	// Quick check: should still contain all elements
 	m1 := make(map[int]bool)
+	m2 := make(map[int]bool)
 	for _, v := range o1 {
 		m1[v] = true
 	}
-	if len(m1) != 5 {
-		t.Errorf("Expected permutation to retain all 5 elements, got %v unique elements: %v", len(m1), o1)
+	for _, v := range o2 {
+		m2[v] = true
+	}
+	if len(m1) != 5 || len(m2) != 5 {
+		t.Errorf("Expected permutations to retain all 5 elements, got %v and %v unique elements", len(m1), len(m2))
 	}
 }
 
