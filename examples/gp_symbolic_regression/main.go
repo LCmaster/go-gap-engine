@@ -5,10 +5,10 @@ import (
 	"math"
 	"strconv"
 
-	"go-gap-engine/engine"
-	"go-gap-engine/gp/operators"
-	"go-gap-engine/gp/tree"
-	"go-gap-engine/selection"
+	"github.com/LCmaster/go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/gp/operators"
+	"github.com/LCmaster/go-gap-engine/gp/tree"
+	"github.com/LCmaster/go-gap-engine/selection"
 )
 
 // evaluate evaluates the tree given a value for 'X'.

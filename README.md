@@ -15,10 +15,9 @@ By leveraging Go generics, the Go GAP Engine decouples the core evolutionary loo
 ## Installation
 
 ```bash
-go get github.com/yourusername/go-gap-engine
+go get github.com/LCmaster/go-gap-engine
 ```
 
-*(Note: Update the URL when the repository is pushed to GitHub)*
 
 ## Quick Start
 
@@ -34,7 +33,7 @@ package main
 
 import (
 	"fmt"
-	"go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/engine"
 	// Import your preferred selection and operators
 )
 

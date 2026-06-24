@@ -2,7 +2,7 @@ package selection_test
 
 import (
 	"testing"
-	"go-gap-engine/selection"
+	"github.com/LCmaster/go-gap-engine/selection"
 )
 
 func TestTournament(t *testing.T) {

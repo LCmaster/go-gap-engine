@@ -3,7 +3,7 @@ package operators_test
 import (
 	"reflect"
 	"testing"
-	"go-gap-engine/ga/operators"
+	"github.com/LCmaster/go-gap-engine/ga/operators"
 )
 
 func TestSinglePointCrossover(t *testing.T) {

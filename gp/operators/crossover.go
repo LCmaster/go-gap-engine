@@ -3,8 +3,8 @@ package operators
 import (
 	"math/rand"
 
-	"go-gap-engine/engine"
-	"go-gap-engine/gp/tree"
+	"github.com/LCmaster/go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/gp/tree"
 )
 
 // SubtreeCrossover returns a crossover function for GP trees.

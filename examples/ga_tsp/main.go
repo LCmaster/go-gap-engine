@@ -5,10 +5,10 @@ import (
 	"math"
 	"math/rand"
 
-	"go-gap-engine/engine"
-	"go-gap-engine/ga/operators"
-	"go-gap-engine/ga/types"
-	"go-gap-engine/selection"
+	"github.com/LCmaster/go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/ga/operators"
+	"github.com/LCmaster/go-gap-engine/ga/types"
+	"github.com/LCmaster/go-gap-engine/selection"
 )
 
 type Point struct {

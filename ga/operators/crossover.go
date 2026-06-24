@@ -2,7 +2,7 @@ package operators
 
 import (
 	"math/rand"
-	"go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/engine"
 )
 
 // SinglePointCrossover creates a CrossoverFunc for any slice-based genome.

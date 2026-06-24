@@ -3,7 +3,7 @@ package selection
 import (
 	"math/rand"
 
-	"go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/engine"
 )
 
 // Tournament returns a SelectionFunc that performs tournament selection.

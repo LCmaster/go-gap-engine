@@ -2,7 +2,7 @@ package engine_test
 
 import (
 	"testing"
-	"go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/engine"
 )
 
 func TestEngineEvolve(t *testing.T) {

@@ -3,7 +3,7 @@ package operators
 import (
 	"math/rand"
 
-	"go-gap-engine/engine"
+	"github.com/LCmaster/go-gap-engine/engine"
 )
 
 // BitFlip creates a MutationFunc for boolean slices (e.g. BitString).
