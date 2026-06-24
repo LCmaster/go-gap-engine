@@ -9,7 +9,9 @@ By leveraging Go generics, the Go GAP Engine decouples the core evolutionary loo
 - **Type-Safe Evolution**: Built entirely using Go generics for compile-time safety and flexibility.
 - **Genetic Algorithms (GA)**: Supports classic array/slice representations, custom permutations, etc.
 - **Genetic Programming (GP)**: Built-in support for Abstract Syntax Trees (ASTs) for solving symbolic regression and other GP problems.
-- **Concurrency**: Fitness evaluation is highly parallelized to speed up computations, customizable via the `ConcurrencyLevel` setting.
+- **Concurrency**: Fitness evaluation is highly parallelized using an atomic task dispatcher, customizable via the `ConcurrencyLevel` setting.
+- **Reproducible Runs**: Pass an optional `Seed *[32]byte` to `Config` to get fully deterministic evolution across runs.
+- **Config Validation**: `engine.New` validates all required fields and returns an error early, preventing unexpected panics at runtime.
 - **Extensible**: Easily provide your own initialization, selection, crossover, mutation, and fitness functions.
 
 ## Installation
@@ -33,6 +35,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"math/rand/v2"
+
 	"github.com/LCmaster/go-gap-engine/engine"
 	// Import your preferred selection and operators
 )
@@ -46,24 +51,41 @@ func main() {
 		CrossoverRate:    0.8,
 		ElitismCount:     2,
 		ConcurrencyLevel: 4,
-		
-		InitFunc:      yourInitFunc,
-		FitnessFunc:   yourFitnessFunc,
-		SelectionFunc: yourSelectionFunc,
-		CrossoverFunc: yourCrossoverFunc,
-		MutationFunc:  yourMutationFunc,
-		
+
+		// Optional: provide a fixed seed for reproducible results
+		// Seed: &[32]byte{1, 2, 3},
+
+		// All operator functions now receive a *rand.Rand for safe, reproducible randomness
+		InitFunc: func(rng *rand.Rand) YourType {
+			return yourInitLogic(rng)
+		},
+		FitnessFunc: func(ind YourType) float64 {
+			return yourFitnessLogic(ind)
+		},
+		SelectionFunc: func(rng *rand.Rand, pop []YourType, fits []float64, num int) []YourType {
+			return yourSelectionLogic(rng, pop, fits, num)
+		},
+		CrossoverFunc: func(rng *rand.Rand, p1, p2 YourType) (YourType, YourType) {
+			return yourCrossoverLogic(rng, p1, p2)
+		},
+		MutationFunc: func(rng *rand.Rand, ind YourType, rate float64) YourType {
+			return yourMutationLogic(rng, ind, rate)
+		},
+
 		OnGeneration: func(gen int, best YourType, bestFit float64, avgFit float64) {
 			fmt.Printf("Generation %d: Best Fitness = %f\n", gen, bestFit)
 		},
 	}
 
-    // 2. Initialize Engine
-	eng := engine.New(cfg)
-	
+    // 2. Initialize Engine (returns an error if config is invalid)
+	eng, err := engine.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// 3. Evolve
 	best, bestFitness := eng.Evolve()
-	
+
 	fmt.Printf("Evolution complete! Best fitness: %f\n", bestFitness)
 }
 ```
@@ -73,7 +95,7 @@ func main() {
 - `engine/`: Core evolutionary loop and concurrency management.
 - `ga/`: Genetic Algorithm specific operators (e.g., Order Crossover, Swap Mutation).
 - `gp/`: Genetic Programming specific features (e.g., Tree representations, Primitive sets, Subtree Mutation).
-- `selection/`: Shared selection algorithms (e.g., Tournament selection).
+- `selection/`: Shared selection algorithms (e.g., Tournament selection, Roulette Wheel).
 - `examples/`: Practical examples demonstrating how to use the engine.
 
 ## License
