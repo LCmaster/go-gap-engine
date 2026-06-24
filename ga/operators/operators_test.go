@@ -1,17 +1,20 @@
 package operators_test
 
 import (
+	"math/rand/v2"
 	"reflect"
 	"testing"
+
 	"github.com/LCmaster/go-gap-engine/ga/operators"
 )
 
 func TestSinglePointCrossover(t *testing.T) {
+	rng := rand.New(rand.NewPCG(1, 2))
 	p1 := []int{1, 1, 1, 1}
 	p2 := []int{2, 2, 2, 2}
 
 	cx := operators.SinglePointCrossover[[]int, int]()
-	o1, o2 := cx(p1, p2)
+	o1, o2 := cx(rng, p1, p2)
 
 	if len(o1) != 4 || len(o2) != 4 {
 		t.Errorf("Expected length 4, got %v and %v", len(o1), len(o2))
@@ -19,11 +22,12 @@ func TestSinglePointCrossover(t *testing.T) {
 }
 
 func TestOrderCrossover(t *testing.T) {
+	rng := rand.New(rand.NewPCG(1, 2))
 	p1 := []int{1, 2, 3, 4, 5}
 	p2 := []int{5, 4, 3, 2, 1}
 
 	cx := operators.OrderCrossover[[]int, int]()
-	o1, o2 := cx(p1, p2)
+	o1, o2 := cx(rng, p1, p2)
 
 	// Quick check: should still contain all elements
 	m1 := make(map[int]bool)
@@ -40,11 +44,12 @@ func TestOrderCrossover(t *testing.T) {
 }
 
 func TestBitFlip(t *testing.T) {
+	rng := rand.New(rand.NewPCG(1, 2))
 	ind := []bool{false, false, false}
 	mut := operators.BitFlip[[]bool]()
 	
 	// rate 1.0 means all flip
-	o := mut(ind, 1.0)
+	o := mut(rng, ind, 1.0)
 	if !reflect.DeepEqual(o, []bool{true, true, true}) {
 		t.Errorf("Expected all bits to flip, got %v", o)
 	}

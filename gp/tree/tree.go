@@ -1,7 +1,7 @@
 package tree
 
 import (
-	"math/rand"
+	"math/rand/v2"
 )
 
 type NodeType int
@@ -53,15 +53,15 @@ type PrimitiveSet struct {
 }
 
 // GenerateFull creates a tree where all branches reach the exact maxDepth.
-func GenerateFull(maxDepth int, pset PrimitiveSet) *Node {
+func GenerateFull(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 	if maxDepth == 0 || len(pset.Functions) == 0 {
 		return &Node{
 			Type:  TerminalNode,
-			Value: pset.Terminals[rand.Intn(len(pset.Terminals))],
+			Value: pset.Terminals[rng.IntN(len(pset.Terminals))],
 		}
 	}
 
-	funcName := pset.Functions[rand.Intn(len(pset.Functions))]
+	funcName := pset.Functions[rng.IntN(len(pset.Functions))]
 	arity := pset.Arity[funcName]
 	
 	node := &Node{
@@ -71,32 +71,32 @@ func GenerateFull(maxDepth int, pset PrimitiveSet) *Node {
 	}
 
 	for i := 0; i < arity; i++ {
-		node.Children[i] = GenerateFull(maxDepth-1, pset)
+		node.Children[i] = GenerateFull(rng, maxDepth-1, pset)
 	}
 
 	return node
 }
 
 // GenerateGrow creates a tree where branches may end before maxDepth.
-func GenerateGrow(maxDepth int, pset PrimitiveSet) *Node {
+func GenerateGrow(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 	if maxDepth == 0 || len(pset.Functions) == 0 {
 		return &Node{
 			Type:  TerminalNode,
-			Value: pset.Terminals[rand.Intn(len(pset.Terminals))],
+			Value: pset.Terminals[rng.IntN(len(pset.Terminals))],
 		}
 	}
 
 	// Choose randomly between a function and a terminal
-	isTerminal := rand.Intn(len(pset.Functions)+len(pset.Terminals)) >= len(pset.Functions)
+	isTerminal := rng.IntN(len(pset.Functions)+len(pset.Terminals)) >= len(pset.Functions)
 	
 	if isTerminal {
 		return &Node{
 			Type:  TerminalNode,
-			Value: pset.Terminals[rand.Intn(len(pset.Terminals))],
+			Value: pset.Terminals[rng.IntN(len(pset.Terminals))],
 		}
 	}
 
-	funcName := pset.Functions[rand.Intn(len(pset.Functions))]
+	funcName := pset.Functions[rng.IntN(len(pset.Functions))]
 	arity := pset.Arity[funcName]
 	
 	node := &Node{
@@ -106,7 +106,7 @@ func GenerateGrow(maxDepth int, pset PrimitiveSet) *Node {
 	}
 
 	for i := 0; i < arity; i++ {
-		node.Children[i] = GenerateGrow(maxDepth-1, pset)
+		node.Children[i] = GenerateGrow(rng, maxDepth-1, pset)
 	}
 
 	return node

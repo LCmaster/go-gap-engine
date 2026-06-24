@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"strconv"
 
 	"github.com/LCmaster/go-gap-engine/engine"
@@ -65,6 +66,8 @@ func main() {
 		},
 	}
 
+	seed := [32]byte{42}
+
 	cfg := engine.Config[tree.Tree]{
 		PopulationSize:   200,
 		Generations:      50,
@@ -72,8 +75,9 @@ func main() {
 		CrossoverRate:    0.7,
 		ElitismCount:     1,
 		ConcurrencyLevel: 4,
-		InitFunc: func() tree.Tree {
-			return tree.Tree{Root: tree.GenerateGrow(4, pset)}
+		Seed:             &seed,
+		InitFunc: func(rng *rand.Rand) tree.Tree {
+			return tree.Tree{Root: tree.GenerateGrow(rng, 4, pset)}
 		},
 		FitnessFunc: func(t tree.Tree) float64 {
 			var errSum float64
@@ -99,7 +103,10 @@ func main() {
 		},
 	}
 
-	eng := engine.New(cfg)
+	eng, err := engine.New(cfg)
+	if err != nil {
+		panic(err)
+	}
 	best, fit := eng.Evolve()
 	fmt.Printf("\nFinal Best Fitness: %.4f\nExpression: %s\n", fit, printTree(best.Root))
 }

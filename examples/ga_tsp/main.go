@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/LCmaster/go-gap-engine/engine"
 	"github.com/LCmaster/go-gap-engine/ga/operators"
@@ -24,9 +24,13 @@ func dist(p1, p2 Point) float64 {
 func main() {
 	numCities := 20
 	cities := make([]Point, numCities)
+	
+	// Use global random for initialization of the problem
 	for i := range cities {
 		cities[i] = Point{rand.Float64() * 100, rand.Float64() * 100}
 	}
+
+	seed := [32]byte{1} // fixed seed for reproducible evolution
 
 	cfg := engine.Config[types.Permutation]{
 		PopulationSize:   100,
@@ -35,12 +39,13 @@ func main() {
 		CrossoverRate:    0.8,
 		ElitismCount:     2,
 		ConcurrencyLevel: 4,
-		InitFunc: func() types.Permutation {
+		Seed:             &seed,
+		InitFunc: func(rng *rand.Rand) types.Permutation {
 			p := make(types.Permutation, numCities)
 			for i := range p {
 				p[i] = i
 			}
-			rand.Shuffle(numCities, func(i, j int) { p[i], p[j] = p[j], p[i] })
+			rng.Shuffle(numCities, func(i, j int) { p[i], p[j] = p[j], p[i] })
 			return p
 		},
 		FitnessFunc: func(p types.Permutation) float64 {
@@ -62,7 +67,10 @@ func main() {
 		},
 	}
 
-	eng := engine.New(cfg)
+	eng, err := engine.New(cfg)
+	if err != nil {
+		panic(err)
+	}
 	best, fit := eng.Evolve()
 	fmt.Printf("Final Best Distance: %.2f\nPath: %v\n", -fit, best)
 }

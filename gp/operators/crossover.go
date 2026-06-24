@@ -1,7 +1,7 @@
 package operators
 
 import (
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/LCmaster/go-gap-engine/engine"
 	"github.com/LCmaster/go-gap-engine/gp/tree"
@@ -10,7 +10,7 @@ import (
 // SubtreeCrossover returns a crossover function for GP trees.
 // It selects a random node in both parents and swaps the subtrees rooted at those nodes.
 func SubtreeCrossover() engine.CrossoverFunc[tree.Tree] {
-	return func(p1, p2 tree.Tree) (tree.Tree, tree.Tree) {
+	return func(rng *rand.Rand, p1, p2 tree.Tree) (tree.Tree, tree.Tree) {
 		o1 := p1.Clone()
 		o2 := p2.Clone()
 
@@ -27,8 +27,8 @@ func SubtreeCrossover() engine.CrossoverFunc[tree.Tree] {
 		}
 
 		// Select random crossover points
-		idx1 := rand.Intn(len(nodes1))
-		idx2 := rand.Intn(len(nodes2))
+		idx1 := rng.IntN(len(nodes1))
+		idx2 := rng.IntN(len(nodes2))
 
 		target1 := nodes1[idx1]
 		target2 := nodes2[idx2]

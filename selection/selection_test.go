@@ -1,16 +1,19 @@
 package selection_test
 
 import (
+	"math/rand/v2"
 	"testing"
+
 	"github.com/LCmaster/go-gap-engine/selection"
 )
 
 func TestTournament(t *testing.T) {
+	rng := rand.New(rand.NewPCG(1, 2))
 	pop := []string{"A", "B", "C", "D"}
 	fits := []float64{1.0, 10.0, 2.0, 0.5}
 
 	sel := selection.Tournament[string](2)
-	selected := sel(pop, fits, 2)
+	selected := sel(rng, pop, fits, 2)
 
 	if len(selected) != 2 {
 		t.Errorf("Expected 2 selected, got %v", len(selected))
@@ -18,11 +21,12 @@ func TestTournament(t *testing.T) {
 }
 
 func TestRouletteWheel(t *testing.T) {
+	rng := rand.New(rand.NewPCG(1, 2))
 	pop := []string{"A", "B"}
 	fits := []float64{1.0, 9.0}
 
 	sel := selection.RouletteWheel[string]()
-	selected := sel(pop, fits, 100)
+	selected := sel(rng, pop, fits, 100)
 
 	if len(selected) != 100 {
 		t.Errorf("Expected 100 selected, got %v", len(selected))

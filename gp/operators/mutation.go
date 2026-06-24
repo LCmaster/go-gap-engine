@@ -1,7 +1,7 @@
 package operators
 
 import (
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/LCmaster/go-gap-engine/engine"
 	"github.com/LCmaster/go-gap-engine/gp/tree"
@@ -9,22 +9,22 @@ import (
 
 // SubtreeMutation returns a mutation function that replaces a random node with a newly generated subtree.
 func SubtreeMutation(maxDepth int, pset tree.PrimitiveSet) engine.MutationFunc[tree.Tree] {
-	return func(ind tree.Tree, rate float64) tree.Tree {
-		if rand.Float64() >= rate {
+	return func(rng *rand.Rand, ind tree.Tree, rate float64) tree.Tree {
+		if rng.Float64() >= rate {
 			return ind
 		}
 
 		o := ind.Clone()
 		if o.Root == nil {
-			o.Root = tree.GenerateGrow(maxDepth, pset)
+			o.Root = tree.GenerateGrow(rng, maxDepth, pset)
 			return o
 		}
 
 		nodes := collectNodes(o.Root)
-		target := nodes[rand.Intn(len(nodes))]
+		target := nodes[rng.IntN(len(nodes))]
 
 		// Generate a new subtree
-		newSubtree := tree.GenerateGrow(maxDepth, pset)
+		newSubtree := tree.GenerateGrow(rng, maxDepth, pset)
 
 		// Replace the target node with the new subtree
 		target.Type = newSubtree.Type
@@ -37,8 +37,8 @@ func SubtreeMutation(maxDepth int, pset tree.PrimitiveSet) engine.MutationFunc[t
 
 // PointMutation returns a mutation function that randomly changes the function or terminal value of a node.
 func PointMutation(pset tree.PrimitiveSet) engine.MutationFunc[tree.Tree] {
-	return func(ind tree.Tree, rate float64) tree.Tree {
-		if rand.Float64() >= rate {
+	return func(rng *rand.Rand, ind tree.Tree, rate float64) tree.Tree {
+		if rng.Float64() >= rate {
 			return ind
 		}
 
@@ -48,7 +48,7 @@ func PointMutation(pset tree.PrimitiveSet) engine.MutationFunc[tree.Tree] {
 		}
 
 		nodes := collectNodes(o.Root)
-		target := nodes[rand.Intn(len(nodes))]
+		target := nodes[rng.IntN(len(nodes))]
 
 		if target.Type == tree.FunctionNode {
 			// Find another function with the same arity
@@ -60,11 +60,11 @@ func PointMutation(pset tree.PrimitiveSet) engine.MutationFunc[tree.Tree] {
 				}
 			}
 			if len(validFuncs) > 0 {
-				target.Value = validFuncs[rand.Intn(len(validFuncs))]
+				target.Value = validFuncs[rng.IntN(len(validFuncs))]
 			}
 		} else {
 			// Mutate terminal
-			target.Value = pset.Terminals[rand.Intn(len(pset.Terminals))]
+			target.Value = pset.Terminals[rng.IntN(len(pset.Terminals))]
 		}
 
 		return o

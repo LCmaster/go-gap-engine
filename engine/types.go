@@ -1,20 +1,24 @@
 package engine
 
+import (
+	"math/rand/v2"
+)
+
 // InitFunc generates a single random individual for the initial population.
-type InitFunc[T any] func() T
+type InitFunc[T any] func(rng *rand.Rand) T
 
 // FitnessFunc evaluates the fitness of a single individual.
 // Higher values should represent better fitness (maximization).
 type FitnessFunc[T any] func(individual T) float64
 
 // SelectionFunc selects 'num' individuals from the population based on their fitnesses.
-type SelectionFunc[T any] func(population []T, fitnesses []float64, num int) []T
+type SelectionFunc[T any] func(rng *rand.Rand, population []T, fitnesses []float64, num int) []T
 
 // CrossoverFunc performs crossover between two parents to produce two offspring.
-type CrossoverFunc[T any] func(p1, p2 T) (T, T)
+type CrossoverFunc[T any] func(rng *rand.Rand, p1, p2 T) (T, T)
 
 // MutationFunc mutates an individual based on the given mutation rate.
-type MutationFunc[T any] func(individual T, rate float64) T
+type MutationFunc[T any] func(rng *rand.Rand, individual T, rate float64) T
 
 // Config holds the configuration for the Engine.
 type Config[T any] struct {
@@ -24,6 +28,7 @@ type Config[T any] struct {
 	CrossoverRate    float64
 	ElitismCount     int
 	ConcurrencyLevel int // Number of goroutines for fitness evaluation (default: runtime.NumCPU())
+	Seed             *[32]byte // Optional seed for reproducible deterministic runs (ChaCha8)
 
 	InitFunc      InitFunc[T]
 	FitnessFunc   FitnessFunc[T]

@@ -1,6 +1,7 @@
 package engine_test
 
 import (
+	"math/rand/v2"
 	"testing"
 	"github.com/LCmaster/go-gap-engine/engine"
 )
@@ -13,24 +14,28 @@ func TestEngineEvolve(t *testing.T) {
 		CrossoverRate:    0.9,
 		ElitismCount:     1,
 		ConcurrencyLevel: 2,
-		InitFunc: func() int {
+		InitFunc: func(rng *rand.Rand) int {
 			return 1
 		},
 		FitnessFunc: func(ind int) float64 {
 			return float64(ind)
 		},
-		SelectionFunc: func(pop []int, fits []float64, num int) []int {
+		SelectionFunc: func(rng *rand.Rand, pop []int, fits []float64, num int) []int {
 			return []int{pop[0], pop[0]}
 		},
-		CrossoverFunc: func(p1, p2 int) (int, int) {
+		CrossoverFunc: func(rng *rand.Rand, p1, p2 int) (int, int) {
 			return p1, p2
 		},
-		MutationFunc: func(ind int, rate float64) int {
+		MutationFunc: func(rng *rand.Rand, ind int, rate float64) int {
 			return ind + 1
 		},
 	}
 
-	eng := engine.New(cfg)
+	eng, err := engine.New(cfg)
+	if err != nil {
+		t.Fatalf("Failed to create engine: %v", err)
+	}
+	
 	best, bestFit := eng.Evolve()
 
 	if bestFit < 1 {

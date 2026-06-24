@@ -1,23 +1,66 @@
 package engine
 
 import (
-	"math/rand"
+	"errors"
+	"math"
+	"math/rand/v2"
 	"runtime"
 	"sort"
 	"sync"
+	"sync/atomic"
 )
 
 // Engine is the core struct that drives the evolutionary process.
 type Engine[T any] struct {
 	cfg Config[T]
+	rng *rand.Rand
 }
 
 // New returns a new Engine configured with the given Config.
-func New[T any](cfg Config[T]) *Engine[T] {
+func New[T any](cfg Config[T]) (*Engine[T], error) {
+	if cfg.PopulationSize <= 0 {
+		return nil, errors.New("PopulationSize must be > 0")
+	}
+	if cfg.Generations <= 0 {
+		return nil, errors.New("Generations must be > 0")
+	}
+	if cfg.InitFunc == nil {
+		return nil, errors.New("InitFunc is required")
+	}
+	if cfg.FitnessFunc == nil {
+		return nil, errors.New("FitnessFunc is required")
+	}
+	if cfg.SelectionFunc == nil {
+		return nil, errors.New("SelectionFunc is required")
+	}
+	if cfg.CrossoverFunc == nil {
+		return nil, errors.New("CrossoverFunc is required")
+	}
+	if cfg.MutationFunc == nil {
+		return nil, errors.New("MutationFunc is required")
+	}
+	if cfg.MutationRate < 0 || cfg.MutationRate > 1 {
+		return nil, errors.New("MutationRate must be between 0 and 1")
+	}
+	if cfg.CrossoverRate < 0 || cfg.CrossoverRate > 1 {
+		return nil, errors.New("CrossoverRate must be between 0 and 1")
+	}
+	if cfg.ElitismCount < 0 || cfg.ElitismCount > cfg.PopulationSize {
+		return nil, errors.New("ElitismCount must be between 0 and PopulationSize")
+	}
+
 	if cfg.ConcurrencyLevel <= 0 {
 		cfg.ConcurrencyLevel = runtime.NumCPU()
 	}
-	return &Engine[T]{cfg: cfg}
+
+	var rng *rand.Rand
+	if cfg.Seed != nil {
+		rng = rand.New(rand.NewChaCha8(*cfg.Seed))
+	} else {
+		rng = rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))
+	}
+
+	return &Engine[T]{cfg: cfg, rng: rng}, nil
 }
 
 // Evolve runs the genetic algorithm for the specified number of generations.
@@ -25,10 +68,10 @@ func (e *Engine[T]) Evolve() (best T, bestFitness float64) {
 	// 1. Initialize population
 	pop := make([]T, e.cfg.PopulationSize)
 	for i := range pop {
-		pop[i] = e.cfg.InitFunc()
+		pop[i] = e.cfg.InitFunc(e.rng)
 	}
 
-	bestFitness = -1.7976931348623157e+308 // math.MaxFloat64 * -1 (lowest possible)
+	bestFitness = -math.MaxFloat64
 
 	for gen := 0; gen < e.cfg.Generations; gen++ {
 		// 2. Evaluate fitness concurrently
@@ -36,7 +79,7 @@ func (e *Engine[T]) Evolve() (best T, bestFitness float64) {
 
 		// 3. Track best and average
 		var currentBest T
-		currentBestFit := -1.7976931348623157e+308
+		currentBestFit := -math.MaxFloat64
 		var sumFit float64
 
 		type indFit struct {
@@ -85,21 +128,21 @@ func (e *Engine[T]) Evolve() (best T, bestFitness float64) {
 		// 5. Selection, Crossover, Mutation
 		for len(newPop) < e.cfg.PopulationSize {
 			// Select parents
-			parents := e.cfg.SelectionFunc(pop, fitnesses, 2)
+			parents := e.cfg.SelectionFunc(e.rng, pop, fitnesses, 2)
 			p1, p2 := parents[0], parents[1]
 
 			var o1, o2 T
 
 			// Crossover
-			if rand.Float64() < e.cfg.CrossoverRate {
-				o1, o2 = e.cfg.CrossoverFunc(p1, p2)
+			if e.rng.Float64() < e.cfg.CrossoverRate {
+				o1, o2 = e.cfg.CrossoverFunc(e.rng, p1, p2)
 			} else {
 				o1, o2 = p1, p2
 			}
 
 			// Mutation
-			o1 = e.cfg.MutationFunc(o1, e.cfg.MutationRate)
-			o2 = e.cfg.MutationFunc(o2, e.cfg.MutationRate)
+			o1 = e.cfg.MutationFunc(e.rng, o1, e.cfg.MutationRate)
+			o2 = e.cfg.MutationFunc(e.rng, o2, e.cfg.MutationRate)
 
 			newPop = append(newPop, o1)
 			if len(newPop) < e.cfg.PopulationSize {
@@ -117,25 +160,25 @@ func (e *Engine[T]) Evolve() (best T, bestFitness float64) {
 func (e *Engine[T]) EvaluatePopulation(pop []T) []float64 {
 	fitnesses := make([]float64, len(pop))
 	var wg sync.WaitGroup
-	
-	// Create a channel for task indices
-	tasks := make(chan int, len(pop))
-	for i := range pop {
-		tasks <- i
-	}
-	close(tasks)
 
 	numWorkers := e.cfg.ConcurrencyLevel
 	if numWorkers > len(pop) {
 		numWorkers = len(pop)
 	}
 
+	var taskIdx atomic.Int64
+	taskIdx.Store(-1)
+
 	for w := 0; w < numWorkers; w++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for i := range tasks {
-				fitnesses[i] = e.cfg.FitnessFunc(pop[i])
+			for {
+				idx := int(taskIdx.Add(1))
+				if idx >= len(pop) {
+					break
+				}
+				fitnesses[idx] = e.cfg.FitnessFunc(pop[idx])
 			}
 		}()
 	}
