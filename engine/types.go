@@ -1,7 +1,21 @@
 package engine
 
 import (
+	"errors"
 	"math/rand/v2"
+)
+
+var (
+	ErrInvalidPopulationSize = errors.New("PopulationSize must be > 0")
+	ErrInvalidGenerations    = errors.New("Generations must be > 0")
+	ErrMissingInitFunc       = errors.New("InitFunc is required")
+	ErrMissingFitnessFunc    = errors.New("FitnessFunc is required")
+	ErrMissingSelectionFunc  = errors.New("SelectionFunc is required")
+	ErrMissingCrossoverFunc  = errors.New("CrossoverFunc is required")
+	ErrMissingMutationFunc   = errors.New("MutationFunc is required")
+	ErrInvalidMutationRate   = errors.New("MutationRate must be between 0 and 1")
+	ErrInvalidCrossoverRate  = errors.New("CrossoverRate must be between 0 and 1")
+	ErrInvalidElitismCount   = errors.New("ElitismCount must be between 0 and PopulationSize")
 )
 
 // InitFunc generates a single random individual for the initial population.
@@ -20,22 +34,115 @@ type CrossoverFunc[T any] func(rng *rand.Rand, p1, p2 T) (T, T)
 // MutationFunc mutates an individual based on the given mutation rate.
 type MutationFunc[T any] func(rng *rand.Rand, individual T, rate float64) T
 
-// Config holds the configuration for the Engine.
-type Config[T any] struct {
-	PopulationSize   int
-	Generations      int
-	MutationRate     float64
-	CrossoverRate    float64
-	ElitismCount     int
-	ConcurrencyLevel int // Number of goroutines for fitness evaluation (default: runtime.NumCPU())
-	Seed             *[32]byte // Optional seed for reproducible deterministic runs (ChaCha8)
+// Option configures the Engine via the functional options pattern.
+type Option[T any] func(*config[T])
 
-	InitFunc      InitFunc[T]
-	FitnessFunc   FitnessFunc[T]
-	SelectionFunc SelectionFunc[T]
-	CrossoverFunc CrossoverFunc[T]
-	MutationFunc  MutationFunc[T]
+// config holds the internal configuration for the Engine.
+type config[T any] struct {
+	populationSize   int
+	generations      int
+	mutationRate     float64
+	crossoverRate    float64
+	elitismCount     int
+	concurrencyLevel int
+	seed             *[32]byte
 
-	// Optional callback executed at the end of each generation
-	OnGeneration func(generation int, best T, bestFitness float64, avgFitness float64)
+	initFunc      InitFunc[T]
+	fitnessFunc   FitnessFunc[T]
+	selectionFunc SelectionFunc[T]
+	crossoverFunc CrossoverFunc[T]
+	mutationFunc  MutationFunc[T]
+
+	onGeneration func(generation int, best T, bestFitness float64, avgFitness float64)
+}
+
+// WithPopulationSize sets the population size.
+func WithPopulationSize[T any](size int) Option[T] {
+	return func(c *config[T]) {
+		c.populationSize = size
+	}
+}
+
+// WithGenerations sets the number of generations to run.
+func WithGenerations[T any](generations int) Option[T] {
+	return func(c *config[T]) {
+		c.generations = generations
+	}
+}
+
+// WithMutationRate sets the mutation rate (0.0 to 1.0).
+func WithMutationRate[T any](rate float64) Option[T] {
+	return func(c *config[T]) {
+		c.mutationRate = rate
+	}
+}
+
+// WithCrossoverRate sets the crossover rate (0.0 to 1.0).
+func WithCrossoverRate[T any](rate float64) Option[T] {
+	return func(c *config[T]) {
+		c.crossoverRate = rate
+	}
+}
+
+// WithElitismCount sets how many of the best individuals carry over to the next generation.
+func WithElitismCount[T any](count int) Option[T] {
+	return func(c *config[T]) {
+		c.elitismCount = count
+	}
+}
+
+// WithConcurrencyLevel sets the number of goroutines for evaluating fitness.
+func WithConcurrencyLevel[T any](level int) Option[T] {
+	return func(c *config[T]) {
+		c.concurrencyLevel = level
+	}
+}
+
+// WithSeed sets a deterministic seed for the RNG.
+func WithSeed[T any](seed [32]byte) Option[T] {
+	return func(c *config[T]) {
+		c.seed = &seed
+	}
+}
+
+// WithInitFunc sets the initialization function.
+func WithInitFunc[T any](f InitFunc[T]) Option[T] {
+	return func(c *config[T]) {
+		c.initFunc = f
+	}
+}
+
+// WithFitnessFunc sets the fitness evaluation function.
+func WithFitnessFunc[T any](f FitnessFunc[T]) Option[T] {
+	return func(c *config[T]) {
+		c.fitnessFunc = f
+	}
+}
+
+// WithSelectionFunc sets the selection function.
+func WithSelectionFunc[T any](f SelectionFunc[T]) Option[T] {
+	return func(c *config[T]) {
+		c.selectionFunc = f
+	}
+}
+
+// WithCrossoverFunc sets the crossover function.
+func WithCrossoverFunc[T any](f CrossoverFunc[T]) Option[T] {
+	return func(c *config[T]) {
+		c.crossoverFunc = f
+	}
+}
+
+// WithMutationFunc sets the mutation function.
+func WithMutationFunc[T any](f MutationFunc[T]) Option[T] {
+	return func(c *config[T]) {
+		c.mutationFunc = f
+	}
+}
+
+// WithOnGeneration sets the callback for each generation's completion.
+func WithOnGeneration[T any](f func(generation int, best T, bestFitness float64, avgFitness float64)) Option[T] {
+	return func(c *config[T]) {
+		c.onGeneration = f
+	}
 }

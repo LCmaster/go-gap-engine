@@ -29,3 +29,6 @@ jobs:
       uses: golangci/golangci-lint-action@v4
       with:
         version: latest
+
+    - name: Benchmark
+      run: go test -bench=. ./...

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/rand/v2"
@@ -68,18 +69,18 @@ func main() {
 
 	seed := [32]byte{42}
 
-	cfg := engine.Config[tree.Tree]{
-		PopulationSize:   200,
-		Generations:      50,
-		MutationRate:     0.2,
-		CrossoverRate:    0.7,
-		ElitismCount:     1,
-		ConcurrencyLevel: 4,
-		Seed:             &seed,
-		InitFunc: func(rng *rand.Rand) tree.Tree {
+	opts := []engine.Option[tree.Tree]{
+		engine.WithPopulationSize[tree.Tree](200),
+		engine.WithGenerations[tree.Tree](50),
+		engine.WithMutationRate[tree.Tree](0.2),
+		engine.WithCrossoverRate[tree.Tree](0.7),
+		engine.WithElitismCount[tree.Tree](1),
+		engine.WithConcurrencyLevel[tree.Tree](4),
+		engine.WithSeed[tree.Tree](seed),
+		engine.WithInitFunc(func(rng *rand.Rand) tree.Tree {
 			return tree.Tree{Root: tree.GenerateGrow(rng, 4, pset)}
-		},
-		FitnessFunc: func(t tree.Tree) float64 {
+		}),
+		engine.WithFitnessFunc(func(t tree.Tree) float64 {
 			var errSum float64
 			for _, p := range data {
 				pred := evaluate(t.Root, p.x)
@@ -92,21 +93,24 @@ func main() {
 			}
 			// Maximize fitness -> use negative MSE
 			return -mse
-		},
-		SelectionFunc: selection.Tournament[tree.Tree](3),
-		CrossoverFunc: operators.SubtreeCrossover(),
-		MutationFunc:  operators.SubtreeMutation(4, pset),
-		OnGeneration: func(gen int, best tree.Tree, bestFit float64, avgFit float64) {
+		}),
+		engine.WithSelectionFunc(selection.Tournament[tree.Tree](3)),
+		engine.WithCrossoverFunc(operators.SubtreeCrossover()),
+		engine.WithMutationFunc(operators.SubtreeMutation(4, pset)),
+		engine.WithOnGeneration(func(gen int, best tree.Tree, bestFit float64, avgFit float64) {
 			if gen%5 == 0 || gen == 49 {
 				fmt.Printf("Gen %3d: Best Fitness (Neg MSE) = %8.4f, Expr: %s\n", gen, bestFit, printTree(best.Root))
 			}
-		},
+		}),
 	}
 
-	eng, err := engine.New(cfg)
+	eng, err := engine.New(opts...)
 	if err != nil {
 		panic(err)
 	}
-	best, fit := eng.Evolve()
+	best, fit, err := eng.Evolve(context.Background())
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("\nFinal Best Fitness: %.4f\nExpression: %s\n", fit, printTree(best.Root))
 }

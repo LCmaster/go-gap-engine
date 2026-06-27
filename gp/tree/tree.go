@@ -52,6 +52,21 @@ type PrimitiveSet struct {
 	Arity map[string]int
 }
 
+func NewPrimitiveSet() *PrimitiveSet {
+	return &PrimitiveSet{
+		Arity: make(map[string]int),
+	}
+}
+
+func (p *PrimitiveSet) AddFunc(name string, arity int) {
+	p.Functions = append(p.Functions, name)
+	p.Arity[name] = arity
+}
+
+func (p *PrimitiveSet) AddTerm(name string) {
+	p.Terminals = append(p.Terminals, name)
+}
+
 // GenerateFull creates a tree where all branches reach the exact maxDepth.
 func GenerateFull(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 	if maxDepth == 0 || len(pset.Functions) == 0 {
@@ -63,7 +78,7 @@ func GenerateFull(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 
 	funcName := pset.Functions[rng.IntN(len(pset.Functions))]
 	arity := pset.Arity[funcName]
-	
+
 	node := &Node{
 		Type:     FunctionNode,
 		Value:    funcName,
@@ -88,7 +103,7 @@ func GenerateGrow(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 
 	// Choose randomly between a function and a terminal
 	isTerminal := rng.IntN(len(pset.Functions)+len(pset.Terminals)) >= len(pset.Functions)
-	
+
 	if isTerminal {
 		return &Node{
 			Type:  TerminalNode,
@@ -98,7 +113,7 @@ func GenerateGrow(rng *rand.Rand, maxDepth int, pset PrimitiveSet) *Node {
 
 	funcName := pset.Functions[rng.IntN(len(pset.Functions))]
 	arity := pset.Arity[funcName]
-	
+
 	node := &Node{
 		Type:     FunctionNode,
 		Value:    funcName,
