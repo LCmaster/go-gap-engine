@@ -1,14 +1,7 @@
 version: "2"
 
-linters-settings:
-  govet:
-    enable-all: true
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - gosimple
@@ -17,6 +10,12 @@ linters:
     - staticcheck
     - unused
     - misspell
+  settings:
+    govet:
+      enable-all: true
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
 
 formatters:
   enable:
