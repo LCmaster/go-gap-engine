@@ -12,6 +12,8 @@ linters:
   settings:
     govet:
       enable-all: true
+      disable:
+        - fieldalignment
     errcheck:
       check-type-assertions: true
       check-blank: true

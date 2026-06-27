@@ -25,7 +25,7 @@ func dist(p1, p2 Point) float64 {
 func main() {
 	numCities := 20
 	cities := make([]Point, numCities)
-	
+
 	// Use global random for initialization of the problem
 	for i := range cities {
 		cities[i] = Point{rand.Float64() * 100, rand.Float64() * 100}

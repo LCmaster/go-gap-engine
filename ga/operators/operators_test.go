@@ -47,7 +47,7 @@ func TestBitFlip(t *testing.T) {
 	rng := rand.New(rand.NewPCG(1, 2))
 	ind := []bool{false, false, false}
 	mut := operators.BitFlip[[]bool]()
-	
+
 	// rate 1.0 means all flip
 	o := mut(rng, ind, 1.0)
 	if !reflect.DeepEqual(o, []bool{true, true, true}) {

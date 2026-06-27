@@ -32,7 +32,7 @@ func Tournament[T any](tournamentSize int) engine.SelectionFunc[T] {
 func RouletteWheel[T any]() engine.SelectionFunc[T] {
 	return func(rng *rand.Rand, pop []T, fitnesses []float64, num int) []T {
 		selected := make([]T, num)
-		
+
 		var sumFit float64
 		for _, f := range fitnesses {
 			if f > 0 {
@@ -56,7 +56,7 @@ func RouletteWheel[T any]() engine.SelectionFunc[T] {
 			}
 			selected[i] = pop[selectedIndex]
 		}
-		
+
 		return selected
 	}
 }

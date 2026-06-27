@@ -11,8 +11,10 @@ import (
 
 func mockInitFunc(rng *rand.Rand) int { return 1 }
 func mockFitnessFunc(ind int) float64 { return float64(ind) }
-func mockSelectionFunc(rng *rand.Rand, pop []int, fits []float64, num int) []int { return []int{pop[0], pop[0]} }
-func mockCrossoverFunc(rng *rand.Rand, p1, p2 int) (int, int) { return p1, p2 }
+func mockSelectionFunc(rng *rand.Rand, pop []int, fits []float64, num int) []int {
+	return []int{pop[0], pop[0]}
+}
+func mockCrossoverFunc(rng *rand.Rand, p1, p2 int) (int, int)    { return p1, p2 }
 func mockMutationFunc(rng *rand.Rand, ind int, rate float64) int { return ind + 1 }
 
 func TestEngineEvolve(t *testing.T) {
@@ -69,10 +71,10 @@ func TestEngineEvolve(t *testing.T) {
 			if err != nil {
 				return
 			}
-			
+
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			
+
 			best, bestFit, err := eng.Evolve(ctx)
 			if tt.checkResult != nil {
 				tt.checkResult(t, best, bestFit, err)
@@ -82,7 +84,7 @@ func TestEngineEvolve(t *testing.T) {
 }
 
 func BenchmarkEngineEvolve(b *testing.B) {
-	eng, _ := engine.New(
+	eng, err := engine.New(
 		engine.WithPopulationSize[int](100),
 		engine.WithGenerations[int](50),
 		engine.WithMutationRate[int](0.1),
@@ -94,9 +96,15 @@ func BenchmarkEngineEvolve(b *testing.B) {
 		engine.WithCrossoverFunc(mockCrossoverFunc),
 		engine.WithMutationFunc(mockMutationFunc),
 	)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		eng.Evolve(context.Background())
+		_, _, err := eng.Evolve(context.Background())
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }

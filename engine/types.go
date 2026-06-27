@@ -6,16 +6,16 @@ import (
 )
 
 var (
-	ErrInvalidPopulationSize = errors.New("PopulationSize must be > 0")
-	ErrInvalidGenerations    = errors.New("Generations must be > 0")
-	ErrMissingInitFunc       = errors.New("InitFunc is required")
-	ErrMissingFitnessFunc    = errors.New("FitnessFunc is required")
-	ErrMissingSelectionFunc  = errors.New("SelectionFunc is required")
-	ErrMissingCrossoverFunc  = errors.New("CrossoverFunc is required")
-	ErrMissingMutationFunc   = errors.New("MutationFunc is required")
-	ErrInvalidMutationRate   = errors.New("MutationRate must be between 0 and 1")
-	ErrInvalidCrossoverRate  = errors.New("CrossoverRate must be between 0 and 1")
-	ErrInvalidElitismCount   = errors.New("ElitismCount must be between 0 and PopulationSize")
+	ErrInvalidPopulationSize = errors.New("population size must be > 0")
+	ErrInvalidGenerations    = errors.New("generations must be > 0")
+	ErrMissingInitFunc       = errors.New("initFunc is required")
+	ErrMissingFitnessFunc    = errors.New("fitnessFunc is required")
+	ErrMissingSelectionFunc  = errors.New("selectionFunc is required")
+	ErrMissingCrossoverFunc  = errors.New("crossoverFunc is required")
+	ErrMissingMutationFunc   = errors.New("mutationFunc is required")
+	ErrInvalidMutationRate   = errors.New("mutation rate must be between 0 and 1")
+	ErrInvalidCrossoverRate  = errors.New("crossover rate must be between 0 and 1")
+	ErrInvalidElitismCount   = errors.New("elitism count must be >= 0 and <= population size")
 )
 
 // InitFunc generates a single random individual for the initial population.

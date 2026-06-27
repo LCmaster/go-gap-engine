@@ -65,7 +65,7 @@ func OrderCrossover[S ~[]E, E comparable]() engine.CrossoverFunc[S] {
 
 		length := len(p1)
 		o1, o2 := make(S, length), make(S, length)
-		
+
 		start := rng.IntN(length)
 		end := rng.IntN(length)
 		if start > end {
@@ -85,15 +85,15 @@ func OrderCrossover[S ~[]E, E comparable]() engine.CrossoverFunc[S] {
 		// Fill the rest
 		fillIdx1 := (end + 1) % length
 		fillIdx2 := (end + 1) % length
-		
+
 		for i := 0; i < length; i++ {
 			idx := (end + 1 + i) % length
-			
+
 			if !set1[p2[idx]] {
 				o1[fillIdx1] = p2[idx]
 				fillIdx1 = (fillIdx1 + 1) % length
 			}
-			
+
 			if !set2[p1[idx]] {
 				o2[fillIdx2] = p1[idx]
 				fillIdx2 = (fillIdx2 + 1) % length
